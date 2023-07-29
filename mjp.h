@@ -1,6 +1,24 @@
 #if !defined(MJP_H)
 
-#include "math.h"
+/*
+Outline:
+   mjp.h 
+   v1.00 
+
+   This is my version of Sean Barrett's highly popular stb single header files.
+
+   Contains useful, reusable utilities, types and functions.
+
+   Many ideas, conventions borrowed directly from stb.h, and the Handmade Hero
+   series.
+
+Documentation:
+   Unit tests:    
+
+Version History
+   1.00 Initial version, gathers sporadic useful types and functions from across my projects.
+
+*/
 
   //////////////////////////////////////////////////////////////////////////////
  //// SECTION: TYPEDEFS ///////////////////////////////////////////////////////
@@ -29,8 +47,6 @@ typedef size_t    memory_index;
 typedef intptr_t  intptr;
 typedef uintptr_t uintptr;
 typedef uintptr_t umm;
-
-
 
 // Vector intrinsics types
 // TODO (MJP): SSE support check
@@ -2481,6 +2497,25 @@ AtomicDecrementU32(u32 volatile *TheValue)
     u32 Result = __sync_fetch_and_add(TheValue, -1);
     return(Result);
 }
+
+/*
+ * SECTION: MEMORY ARENAS
+ *
+ *
+ */
+
+
+
+
+/*
+ * SECTION: STRINGS
+ *
+ *
+ *
+ *
+ */
+
+
 
 #define MJP_H
 #endif
