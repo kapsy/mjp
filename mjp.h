@@ -66,7 +66,8 @@ typedef __m256i m256i;
 
 #define R32_MAX FLT_MAX
 #define R32_MIN FLT_MAX
-#define u32_MAX 0xFFFFFFFF
+#define U32_MAX 0xFFFFFFFF
+#define S32_MAX
 
 // TODO (MJP): Is there a way to get these from the system?
 #define L2_CACHE_SIZE 64
@@ -93,6 +94,7 @@ typedef __m256i m256i;
 #define AssertNAN64(x)
 #endif
 
+#define FatalAssert(Expression) if(!(Expression)) { abort(); }
 
 // Zero functions 
 inline void
@@ -2507,14 +2509,48 @@ AtomicDecrementU32(u32 volatile *TheValue)
 
 
 
-/*
- * SECTION: STRINGS
- *
- *
- *
- *
- */
+// 
+// SECTION: STRINGS
+// 
+//
 
+
+
+
+// TODO Replace with String8 like implementation
+inline int
+StringLength(char *String)
+{
+    int Count = 0;
+    while(*String++)
+    {
+        ++Count;
+    }
+    return(Count);
+}
+
+// TODO (MJP): Use RJF String8 like functions
+inline u32
+CatStrings (char *a, char *b, char *out)
+{
+    char *outat = out;
+
+    char *aat = a;
+    u32 alen = StringLength(a);
+
+    char *bat = b;
+    u32 blen = StringLength(b);
+
+    for (u32 i=0 ; i<alen ; i++)
+        *outat++ = *aat++;
+        
+    for (u32 i=0 ; i<blen ; i++)
+        *outat++ = *bat++;
+
+    u32 res = (u32) (outat - out);
+
+    return (res);
+}
 
 
 #define MJP_H
