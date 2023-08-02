@@ -77,7 +77,7 @@ typedef __m256i m256i;
 
 
 // Assert defines
-#if GLOBAL_ASSERTS
+#if ASSERTS_ENABLED
 #define Assert(Expression) if(!(Expression)) { abort(); }
 #define AssertPrint(expr, msg) if (!(expr)) { printf ("%s\n", (msg)); abort(); }
 #define AssertNAN(x) Assert(!(x != x));
@@ -2551,6 +2551,368 @@ CatStrings (char *a, char *b, char *out)
 
     return (res);
 }
+
+//
+// SECTION: CHUNK ALLOCATOR
+//
+// This is a basic heap allocator, that operates with a fixed chunk size to
+// reduce fragmentation and the realloc frequency. 
+//
+// Allocates from a Arena (that should be expandable using virtual alloc etc) for now.
+//
+// TODO (MJP): To be honest, I don't know if it's faster than 8 aligned
+// allocations, and might well be. Need to make the chunk/alignment size
+// adjustable, so implementer can decide based on use case.
+//
+
+// NOTE (MJP): Chunk allocator types
+#define CHUNK_ALLOCATOR_CHUNK_SIZE 64
+#define CHUNK_ALLOCATOR_CHUNK_COUNT (1 << 18)
+
+struct chunk_region
+{
+   chunk_region *Next;
+   chunk_region *Prev;
+   u32  StartIndex;
+   u32  Count;
+};
+
+struct chunk_allocator
+{
+   // NOTE (MJP): Ordered list for tracking free regions, not to be confused
+   // with FreeListSentinel
+   chunk_region *FreeRegionsSentinel;
+   chunk_region *AllocatedRegionsSentinel;
+
+   // NOTE (MJP): For recycling chunk_regions, NOT tracking free regions
+   chunk_region *FreeListSentinel;
+
+   M_Arena *Arena;
+
+   // TODO (MJP): For now, will allocate up front from same arena, but would
+   // like to be expandable, so will probably have a different arena for chunk
+   // memory and allocation meta members.
+   u8 *ChunkMemory;
+};
+
+function u32
+GetChunkCount(u32 SizeBytes)
+{
+   u32 ChunkCount =
+      (SizeBytes + (CHUNK_ALLOCATOR_CHUNK_SIZE - 1))/CHUNK_ALLOCATOR_CHUNK_SIZE;
+   return(ChunkCount);
+}
+
+function u32
+GetSizeBytes(u32 ChunkCount)
+{
+   u32 SizeBytes = ChunkCount*CHUNK_ALLOCATOR_CHUNK_SIZE;
+   return(SizeBytes);
+}
+
+function void
+InsertRegionInOrder(chunk_region *Sentinel, chunk_region *ChunkRegion)
+{
+   chunk_region *NextRegion = Sentinel->Next;
+   for (; NextRegion != Sentinel;
+          NextRegion = NextRegion->Next)
+   {
+      if (NextRegion->StartIndex > ChunkRegion->StartIndex)
+      {
+         break;
+      }
+   }
+   SDLLInsertBefore(NextRegion, ChunkRegion);
+}
+
+function chunk_region *
+NewChunkRegion(chunk_allocator *ChunkAllocator, u32 StartIndex, u32 Count)
+{
+   chunk_region *ChunkRegion = 0;
+   SDLLAlloc(ChunkRegion, ChunkAllocator->FreeListSentinel,
+             RJF_PushArray(ChunkAllocator->Arena, chunk_region, 1));
+   Assert(ChunkRegion);
+   ZeroStruct(*ChunkRegion);
+
+   ChunkRegion->StartIndex = StartIndex;
+   ChunkRegion->Count = Count;
+
+   return(ChunkRegion);
+}
+
+function void
+RemoveChunkRegion(chunk_allocator *ChunkAllocator, chunk_region *ChunkRegion)
+{
+   SDLLRemove(ChunkRegion);
+   SDLLInsertAfter(ChunkAllocator->FreeListSentinel, ChunkRegion);
+}
+
+
+function void *
+GetMemoryAddress(chunk_allocator *Allocator, u32 ChunkIndex)
+{
+   void *Address =
+      (void *) (Allocator->ChunkMemory +
+       ChunkIndex*CHUNK_ALLOCATOR_CHUNK_SIZE);
+   Assert(Address);
+   return(Address);
+}
+
+function void *
+GetMemoryAddress(chunk_allocator *Allocator, chunk_region *ChunkRegion)
+{
+   void *Address =
+      (void *) (Allocator->ChunkMemory +
+       ChunkRegion->StartIndex*CHUNK_ALLOCATOR_CHUNK_SIZE);
+   Assert(Address);
+   return(Address);
+}
+
+function chunk_region *
+GetAllocatedRegion(chunk_allocator *ChunkAllocator, void *RegionStartAddress)
+{
+   chunk_region *FoundAllocatedRegion = 0;
+
+   u32 ChunkStartIndex = 
+      (u32)(((memory_index)RegionStartAddress -
+             (memory_index)ChunkAllocator->ChunkMemory)/
+             CHUNK_ALLOCATOR_CHUNK_SIZE);
+
+   // TODO (MJP): Dictionary is probably better than iterating like this every time.
+   for (chunk_region *AllocatedRegion = ChunkAllocator->AllocatedRegionsSentinel->Next;
+                      AllocatedRegion != ChunkAllocator->AllocatedRegionsSentinel;
+                      AllocatedRegion = AllocatedRegion->Next)
+   {
+      if (AllocatedRegion->StartIndex == ChunkStartIndex)
+      {
+         FoundAllocatedRegion = AllocatedRegion;
+         break;
+      }
+   }
+   return(FoundAllocatedRegion);
+}
+
+function void
+MergeNeighboringFreeRegions(chunk_allocator *ChunkAllocator)
+{
+
+}
+
+function void
+SetupAllocator(chunk_allocator *ChunkAllocator)
+{
+   ChunkAllocator->Arena = M_ArenaAlloc((1 << 20)*20);
+
+   u32 ChunkMemorySize =
+      CHUNK_ALLOCATOR_CHUNK_SIZE*CHUNK_ALLOCATOR_CHUNK_COUNT;
+   ChunkAllocator->ChunkMemory =
+      (u8 *)M_ArenaPushAligned(ChunkAllocator->Arena,
+                               ChunkMemorySize, L2_CACHE_SIZE);
+
+   ChunkAllocator->AllocatedRegionsSentinel = 
+      RJF_PushArray(ChunkAllocator->Arena, chunk_region, 1);
+   ChunkAllocator->AllocatedRegionsSentinel->Next = 
+   ChunkAllocator->AllocatedRegionsSentinel->Prev = 
+   ChunkAllocator->AllocatedRegionsSentinel;
+
+   ChunkAllocator->FreeRegionsSentinel = 
+      RJF_PushArray(ChunkAllocator->Arena, chunk_region, 1);
+   ChunkAllocator->FreeRegionsSentinel->Next = 
+   ChunkAllocator->FreeRegionsSentinel->Prev = 
+   ChunkAllocator->FreeRegionsSentinel;
+
+   ChunkAllocator->FreeListSentinel = 
+      RJF_PushArray(ChunkAllocator->Arena, chunk_region, 1);
+   ChunkAllocator->FreeListSentinel->Next = 
+   ChunkAllocator->FreeListSentinel->Prev = 
+   ChunkAllocator->FreeListSentinel;
+
+   // Setup the first free region
+   chunk_region *FreeRegion =
+      NewChunkRegion(ChunkAllocator, 0, CHUNK_ALLOCATOR_CHUNK_COUNT);
+   InsertRegionInOrder(ChunkAllocator->FreeRegionsSentinel, FreeRegion);
+}
+
+function void
+CheckForClashingRegions(chunk_allocator *ChunkAllocator)
+{
+   for (chunk_region *AllocatedRegion = ChunkAllocator->AllocatedRegionsSentinel->Next;
+                      AllocatedRegion != ChunkAllocator->AllocatedRegionsSentinel;
+                      AllocatedRegion = AllocatedRegion->Next)
+   {
+      u32 AllocatedRegionChunkStartIndex = AllocatedRegion->StartIndex;
+      u32 AllocatedRegionChunkOPEIndex = AllocatedRegion->StartIndex + AllocatedRegion->Count;
+
+      for (chunk_region *TestRegion = AllocatedRegion->Next;
+            TestRegion != ChunkAllocator->AllocatedRegionsSentinel;
+            TestRegion = TestRegion->Next)
+      {
+         u32 TestRegionChunkStartIndex = TestRegion->StartIndex;
+         u32 TestRegionChunkOPEIndex = TestRegion->StartIndex + TestRegion->Count;
+
+         Assert(((TestRegionChunkStartIndex >= AllocatedRegionChunkOPEIndex) &&
+                 (TestRegionChunkOPEIndex >= AllocatedRegionChunkOPEIndex)) ||
+                ((TestRegionChunkStartIndex <= AllocatedRegionChunkStartIndex) &&
+                 (TestRegionChunkOPEIndex <= AllocatedRegionChunkStartIndex)));
+      }
+
+      for (chunk_region *TestRegion = ChunkAllocator->FreeRegionsSentinel->Next;
+                         TestRegion != ChunkAllocator->FreeRegionsSentinel;
+                         TestRegion = TestRegion->Next)
+      {
+         u32 TestRegionChunkStartIndex = TestRegion->StartIndex;
+         u32 TestRegionChunkOPEIndex = TestRegion->StartIndex + TestRegion->Count;
+
+         Assert(((TestRegionChunkStartIndex >= AllocatedRegionChunkOPEIndex) &&
+                 (TestRegionChunkOPEIndex >= AllocatedRegionChunkOPEIndex)) ||
+                ((TestRegionChunkStartIndex <= AllocatedRegionChunkStartIndex) &&
+                 (TestRegionChunkOPEIndex <= AllocatedRegionChunkStartIndex)));
+      }
+   }
+
+   for (chunk_region *FreeRegion = ChunkAllocator->FreeRegionsSentinel->Next;
+                      FreeRegion != ChunkAllocator->FreeRegionsSentinel;
+                      FreeRegion = FreeRegion->Next)
+   {
+      u32 FreeRegionChunkStartIndex = FreeRegion->StartIndex;
+      u32 FreeRegionChunkOPEIndex = FreeRegion->StartIndex + FreeRegion->Count;
+
+      for (chunk_region *TestRegion = FreeRegion->Next;
+                         TestRegion != ChunkAllocator->FreeRegionsSentinel;
+                         TestRegion = TestRegion->Next)
+      {
+         u32 TestRegionChunkStartIndex = TestRegion->StartIndex;
+         u32 TestRegionChunkOPEIndex = TestRegion->StartIndex + TestRegion->Count;
+
+         Assert(((TestRegionChunkStartIndex >= FreeRegionChunkOPEIndex) &&
+                 (TestRegionChunkOPEIndex >= FreeRegionChunkOPEIndex)) ||
+                ((TestRegionChunkStartIndex <= FreeRegionChunkStartIndex) &&
+                 (TestRegionChunkOPEIndex <= FreeRegionChunkStartIndex)));
+      }
+   }
+}
+
+function chunk_region *
+AllocateChunkRegion(chunk_allocator *ChunkAllocator, u32 ChunkCount)
+{
+   Assert(ChunkCount);
+   Assert(ChunkAllocator->ChunkMemory);
+
+   void *RegionStartAddress = 0;
+
+   chunk_region *AllocatedRegion = 0;
+   for (chunk_region *FreeRegion = ChunkAllocator->FreeRegionsSentinel->Next;
+                      FreeRegion != ChunkAllocator->FreeRegionsSentinel;
+                      FreeRegion = FreeRegion->Next)
+   {
+      if (ChunkCount <= FreeRegion->Count)
+      {
+         SDLLRemove(FreeRegion);
+         AllocatedRegion = FreeRegion;
+         InsertRegionInOrder(ChunkAllocator->AllocatedRegionsSentinel, AllocatedRegion);
+
+         u32 RemainingChunks = AllocatedRegion->Count - ChunkCount;
+         if (RemainingChunks)
+         {
+            u32 NewFreeRegionStartIndex = 
+                  (AllocatedRegion->StartIndex + ChunkCount);
+            chunk_region *NewFreeRegion =
+               NewChunkRegion(ChunkAllocator, NewFreeRegionStartIndex, RemainingChunks);
+            Assert(NewFreeRegion->StartIndex != AllocatedRegion->StartIndex);
+            InsertRegionInOrder(ChunkAllocator->FreeRegionsSentinel, NewFreeRegion);
+            // MergeNeighboringFreeRegions(ChunkAllocator);
+         }
+
+         AllocatedRegion->Count = ChunkCount;
+         break;
+      }
+   }
+   Assert(AllocatedRegion);
+
+   return(AllocatedRegion);
+}
+
+#if 0 // old
+void *
+NewAllocationVoid(chunk_allocator *ChunkAllocator, u32 SizeBytes)
+{
+   Assert(ChunkAllocator->ChunkMemory);
+
+   u32 ChunkCount = GetChunkCount(SizeBytes);
+   chunk_region *AllocatedRegion =
+      AllocateChunkRegion(ChunkAllocator, ChunkCount);
+
+   void *RegionStartAddress = 
+      GetMemoryAddress(ChunkAllocator, AllocatedRegion);
+
+   // TODO (MJP): Asserting here for now, but really up to caller to check if allocation suceeded.
+   // However, when we support expandable arenas, will want to assert here.
+   Assert(RegionStartAddress);
+   return(RegionStartAddress);
+}
+#endif
+
+function void *
+ResizeAllocationVoid(chunk_allocator *ChunkAllocator, void *RegionStartAddress, u32 SizeBytes)
+{
+   chunk_region *SourceRegion =
+      GetAllocatedRegion(ChunkAllocator, RegionStartAddress);
+
+   Assert(ChunkAllocator->ChunkMemory);
+   void *NewRegionStartAddress = 0x0;
+   u32 NewChunkCount = GetChunkCount(SizeBytes);
+
+   if (NewChunkCount)
+   {
+      // TODO (MJP): Check neighboring regions and if free, and have enough
+      // space, expand the region to avoid copying
+
+      chunk_region *DestRegion =
+         AllocateChunkRegion(ChunkAllocator, NewChunkCount);
+
+      if (SourceRegion)
+      {
+         // Copy and free
+         void *SourceMemory =
+            GetMemoryAddress(ChunkAllocator, SourceRegion);
+         void *DestMemory =
+            GetMemoryAddress(ChunkAllocator, DestRegion);
+
+         u32 CopySizeBytes =
+            GetSizeBytes(Min(SourceRegion->Count, DestRegion->Count));
+         u32 DestSizeBytes = GetSizeBytes(DestRegion->Count);
+         Assert(CopySizeBytes <= DestSizeBytes);
+         MemCopy(DestMemory, SourceMemory, CopySizeBytes);
+
+         // Move region to free regions
+         SDLLRemove(SourceRegion);
+         InsertRegionInOrder(ChunkAllocator->FreeRegionsSentinel, SourceRegion);
+
+         Assert(GetMemoryAddress(ChunkAllocator, DestRegion) == DestMemory);
+      }
+
+      NewRegionStartAddress = GetMemoryAddress(ChunkAllocator, DestRegion);
+   }
+   else
+   {
+      if (SourceRegion)
+      {
+         SDLLRemove(SourceRegion);
+         InsertRegionInOrder(ChunkAllocator->FreeRegionsSentinel, SourceRegion);
+      }
+      NewRegionStartAddress = 0x0;
+   }
+
+   MergeNeighboringFreeRegions(ChunkAllocator);
+
+   // CheckForClashingRegions(ChunkAllocator);
+   return(NewRegionStartAddress);
+}
+
+#define NULL_ALLOCATION 0x0
+// NOTE (MJP): User facing API
+#define NewAllocation(Allocator, Type, Count) (Type *)ResizeAllocationVoid(Allocator, (void *)NULL_ALLOCATION, SizeOf(Type)*Count)
+#define ResizeAllocation(Allocator, Allocation, Type, Count) (Type *)ResizeAllocationVoid((Allocator), (void *)(Allocation), SizeOf(Type)*(Count))
 
 
 #define MJP_H
