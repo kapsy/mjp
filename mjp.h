@@ -2456,6 +2456,8 @@ AtomicCompareExchangeU64_B32(u64 volatile *TheValue, u64 OldValue, u64 NewValue)
    return(Result);
 }
 
+
+
 // TODO: (KAPSY) What does this guy actually do?
 // What value is actually returned? Does it always perform the operation?
 function u64
@@ -2499,6 +2501,31 @@ AtomicDecrementU32(u32 volatile *TheValue)
     u32 Result = __sync_fetch_and_add(TheValue, -1);
     return(Result);
 }
+
+// NOTE (MJP): Simplified atomic functions
+function b32
+AtomicCompareAndSwapBool(u64 volatile *TheValue, u64 OldValue, u64 NewValue)
+{
+   b32 Result = __sync_bool_compare_and_swap(TheValue, OldValue, NewValue);
+   return(Result);
+}
+
+function u64
+AtomicLoad(u64 volatile *TheValue)
+{
+   // NOTE: (Kapsy) Returns the original value, prior to adding.
+   u64 Result = __sync_fetch_and_add(TheValue, 0);
+   return(Result);
+}
+
+function u64
+AtomicAdd(u64 volatile *TheValue, u64 Addend)
+{
+    // NOTE: (Kapsy) Returns the original value, prior to adding.
+    u64 Result = __sync_fetch_and_add(TheValue, Addend);
+    return(Result);
+}
+
 
 /*
  * SECTION: MEMORY ARENAS
