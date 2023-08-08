@@ -138,6 +138,12 @@ PointerToU32(void *Pointer)
 // See: http://clang.llvm.org/docs/LanguageExtensions.html#builtin-functions
 #define __rdtsc __builtin_readcyclecounter
 
+// NOTE (MJP): These only work when Count is a power of 2
+#define AddAndWrap(Value, Addend, Count) (Value) = (((Value) + (Addend)) & ((Count) - 1))
+#define IncAndWrap(Value, Count) (Value) = (((Value) + 1) & ((Count) - 1))
+#define DecAndWrap(Value, Count) (Value) = (((Value) - 1) & ((Count) - 1))
+
+
   //////////////////////////////////////////////////////////////////////////////
  //// SECTION STD LIB, INTRINSIC WRAPPERS /////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////
@@ -2510,11 +2516,19 @@ AtomicCompareAndSwapBool(u64 volatile *TheValue, u64 OldValue, u64 NewValue)
    return(Result);
 }
 
+//// function u64
+//// AtomicLoad(u64 volatile *TheValue)
+//// {
+////    // NOTE: (Kapsy) Returns the original value, prior to adding.
+////    u64 Result = __sync_fetch_and_add(TheValue, 0);
+////    return(Result);
+//// }
+
 function u64
 AtomicLoad(u64 volatile *TheValue)
 {
    // NOTE: (Kapsy) Returns the original value, prior to adding.
-   u64 Result = __sync_fetch_and_add(TheValue, 0);
+   u64 Result = __atomic_load_n(TheValue, __ATOMIC_SEQ_CST);
    return(Result);
 }
 
@@ -2523,6 +2537,14 @@ AtomicAdd(u64 volatile *TheValue, u64 Addend)
 {
     // NOTE: (Kapsy) Returns the original value, prior to adding.
     u64 Result = __sync_fetch_and_add(TheValue, Addend);
+    return(Result);
+}
+
+function u64
+AtomicSub(u64 volatile *TheValue, u64 Addend)
+{
+    // NOTE: (Kapsy) Returns the original value, prior to adding.
+    u64 Result = __sync_fetch_and_sub(TheValue, Addend);
     return(Result);
 }
 
