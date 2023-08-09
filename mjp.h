@@ -17,14 +17,13 @@ Documentation:
 
 Version History
    1.00 Initial version, gathers sporadic useful types and functions from across my projects.
-
 */
 
-  //////////////////////////////////////////////////////////////////////////////
- //// SECTION: TYPEDEFS ///////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////////////////////////
 
-// Here is a change
+//
+// SECTION: TYPEDEFS
+//
+//
 
 // Basic typedefs
 typedef int8_t    s8;
@@ -143,10 +142,10 @@ PointerToU32(void *Pointer)
 #define IncAndWrap(Value, Count) (Value) = (((Value) + 1) & ((Count) - 1))
 #define DecAndWrap(Value, Count) (Value) = (((Value) - 1) & ((Count) - 1))
 
-
-  //////////////////////////////////////////////////////////////////////////////
- //// SECTION STD LIB, INTRINSIC WRAPPERS /////////////////////////////////////
-//////////////////////////////////////////////////////////////////////////////
+//
+// SECTION STD LIB, INTRINSIC WRAPPERS
+//
+//
 
 inline void
 MemCopy(void *Dest, void *Source, u32 Size)
@@ -214,12 +213,6 @@ AbsoluteValue(r32 A)
     r32 Result = fabs(A);
     return(Result);
 }
-
-//// inline s32
-//// AbsoluteValue (s32 x)
-//// {
-////    return (abs (x));
-//// }
 
 inline u32
 RotateLeft(u32 Value, s32 Amount)
@@ -391,24 +384,10 @@ ReverseEndianDWord(u32 DWord)
     return(Result);
 }
 
-//// old inline r32
-//// old Min(r32 A, r32 B)
-//// old {
-//// old     r32 Result = fminf(A, B);
-//// old     return(Result);
-//// old }
-//// old 
-//// old inline r32
-//// old Max(r32 A, r32 B)
-//// old {
-//// old     r32 Result = fmaxf(A, B);
-//// old     return(Result);
-//// old }
-
-
-  ////////////////////////////////////////////////////////////////////////////////
- //// SECTION MATH HELPERS //////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////////
+//
+// SECTION MATH HELPERS
+//
+//
 
 // Trig constants
 #define PI 3.141592653589793
@@ -813,10 +792,10 @@ TanApprox(m128 x)
 }
 
 
-
-  //////////////////////////////////////////////////////////////////////////////
- //// SECTION: VECTORS ////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////////////////////////
+//
+// SECTION: VECTORS
+//
+//
 
 // TODO (MJP): Add SIMD as separate types, or only for say, v4?
 // for instance, simd_v2
@@ -1499,9 +1478,10 @@ ColorWithSaturation(v4 C, r32 S)
    return(Result);
 }
 
-  //////////////////////////////////////////////////////////////////////////////
- //// SECTION: RECTANGLES /////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////////////////////////
+//
+// SECTION: RECTANGLES
+//
+//
 
 // NOTE (mjp): Rectangle types and functions
 
@@ -2286,9 +2266,10 @@ RandomBetweenS32 (random_seed *seed, s32 min, s32 max)
 ////     return (y);
 //// }
 
-  //////////////////////////////////////////////////////////////////////////////
- //// SECTION: LINKED LISTS ///////////////////////////////////////////////////
-//////////////////////////////////////////////////////////////////////////////
+//
+// SECTION: LINKED LISTS
+//
+//
 
 // f:first/free l:last b:base n:node
 
@@ -2412,10 +2393,10 @@ RandomBetweenS32 (random_seed *seed, s32 min, s32 max)
 #define DLLRemoveL(list, elem) DLLRemove ((list).first, (list).last, (elem))
 
 
-////////////////////////////////////////////////////////////////////////////
+//
 // SECTION: MIDI
 //
-// Comments go here
+//
 
 
 // 1.0/127.0 (not 128, because we want 127 = 1.0)
@@ -2425,13 +2406,10 @@ RandomBetweenS32 (random_seed *seed, s32 min, s32 max)
 #define INV_MIDI_VEL 0.007874015748031
 
 
-
-/*
- * SECTION: ATOMICS
- *
- * Implementation notes go here...
- *
- */
+//
+// SECTION: ATOMICS
+//
+//
  
 // MARK: - HMH LLVM atomic operations
 // // TODO: (Kapsy) Does LLVM have specific barrier calls?
@@ -2558,11 +2536,11 @@ AtomicSub(u64 volatile *TheValue, u64 Addend)
 }
 
 
-/*
- * SECTION: MEMORY ARENAS
- *
- *
- */
+// 
+// SECTION: MEMORY ARENAS
+// 
+// 
+
 
 
 
