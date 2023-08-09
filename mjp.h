@@ -818,6 +818,15 @@ TanApprox(m128 x)
  //// SECTION: VECTORS ////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////
 
+// TODO (MJP): Add SIMD as separate types, or only for say, v4?
+// for instance, simd_v2
+// would all just be aliases of a simd_v4
+// is there any advantage to having say, a v4 that _doesn't_ use simd?
+// - Not really? but for v2s etc, you do get the space saving
+// - If you really wanted, could use the same underlying data structure, as
+// long as aligned, but just run through simd functions. Kind of lame for
+// vectors though, where you just want to use operators...
+
 union v2
 {
     struct
