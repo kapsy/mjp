@@ -20,6 +20,22 @@ Version History
 */
 
 
+#define MJP__USE_SSE 0
+
+//
+// SECTION: STANDARD LIB INCLUDES
+//
+//
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <math.h>
+#include <stddef.h>
+#include <limits.h>
+#include <string.h>
+//#include <cfloat.h>
+
+
 //
 // SECTION: TYPEDEFS
 //
@@ -48,6 +64,7 @@ typedef uintptr_t uintptr;
 typedef uintptr_t umm;
 
 // Vector intrinsics types
+#if MJP__USE_SSE
 // TODO (MJP): SSE support check
 typedef __m128 m128;
 // TODO (MJP): Remove this
@@ -55,6 +72,7 @@ typedef __m128 r128;
 typedef __m128i m128i;
 typedef __m256 m256;
 typedef __m256i m256i;
+#endif
 
 
 // Macros and defines
@@ -427,6 +445,7 @@ ReverseEndianDWord(u32 DWord)
 #define NSToUS(Value) ((Value)*USPerNS)
 
 
+#if MJP__USE_SSE
 // TODO (MJP): Get rid of these
 #define ZERO _mm_set1_ps(0.f)
 #define ONE _mm_set1_ps(1.f)
@@ -446,6 +465,7 @@ ReverseEndianDWord(u32 DWord)
 #define PI128 _mm_set1_ps(PI_R64)
 #define TAU128 _mm_set1_ps(TAU_R64)
 #define NEGTAU128 _mm_set1_ps (TAU_R64)
+#endif
 
 
 inline r32
@@ -463,6 +483,7 @@ Lerp(r32 A, r32 t, r32 B)
 }
 
 
+#if MJP__USE_SSE
 // move these somewhere useful
 //#define FMA(x, a, y) _mm_add_ps(_mm_mul_ps(x, a), y)
 #define AbsR128(a) (_mm_and_ps ((a), ABSMASK))
@@ -470,6 +491,7 @@ Lerp(r32 A, r32 t, r32 B)
 //
 // #define ShapedPanR128(x) (THIRD*((x)*(FOUR - (x))))
 // #define ShapedPan(x) { 0.333333f*((x)*(4.f - (x))) }
+#endif
 
 inline r32
 ShapedPan (r32 x)
@@ -479,12 +501,14 @@ ShapedPan (r32 x)
 }
 
 
+#if MJP__USE_SSE
 inline r128
 ShapedPanR128 (r128 x)
 {
    r128 y = THIRD*(x*(FOUR - x));
    return (y);
 }
+#endif
 
 // which law is this???
 internal r32 ShapedXfade (r32 t)
@@ -504,6 +528,8 @@ ShapedMix (r32 t, r32 x1, r32 x2)
    return (y);
 }
 
+
+#if MJP__USE_SSE
 // which law is this???
 internal r128
 ShapedXfade (r128 t)
@@ -528,6 +554,7 @@ BiToUni (r128 x)
 {
    return ((x + ONE)*HALF);
 }
+#endif
 
 internal r32
 BiToUni (r32 x)
@@ -536,7 +563,7 @@ BiToUni (r32 x)
 }
 
 
-#if 0
+#if MJP__USE_SSE
 inline r128
 ClampUniR128 (r128 x)
 {
@@ -549,7 +576,6 @@ ClampUniR128 (r128 x)
    r128 y = a + b + c;
    return (y);
 }
-#endif
 
 
 
@@ -578,7 +604,7 @@ Lerp(m256 t, m256 a, m256 b)
    m256 y = _mm256_fmadd_ps((one - t), a, t*b);
    return (y);
 }
-
+#endif
 
 
 
@@ -650,6 +676,7 @@ ClampBiR32 (r32 x)
    return (y);
 }
 
+#if MJP__USE_SSE
 #if 1
 // sse4, but takes about half the time of above implementation
 inline r128
@@ -713,6 +740,7 @@ ClampUni256(m256 x)
    return (y);
 }
 
+#endif
 
 
 
@@ -781,6 +809,7 @@ TanApprox(r32 x)
     return(Result);
 }
 
+#if MJP__USE_SSE
 inline m128
 TanApprox(m128 x)
 {
@@ -790,6 +819,7 @@ TanApprox(m128 x)
     m128 Result = x + (xe5*0.133333f + xe3*0.333333f);
     return(Result);
 }
+#endif
 
 
 //
@@ -797,14 +827,7 @@ TanApprox(m128 x)
 //
 //
 
-// TODO (MJP): Add SIMD as separate types, or only for say, v4?
-// for instance, simd_v2
-// would all just be aliases of a simd_v4
-// is there any advantage to having say, a v4 that _doesn't_ use simd?
-// - Not really? but for v2s etc, you do get the space saving
-// - If you really wanted, could use the same underlying data structure, as
-// long as aligned, but just run through simd functions. Kind of lame for
-// vectors though, where you just want to use operators...
+// TODO (MJP): Add SIMD paths for v4s etc
 
 union v2
 {
@@ -1079,6 +1102,13 @@ operator/(v2 A, r32 B)
    return(Result);
 }
 
+inline v2 &
+operator/=(v2 &A, r32 B)
+{
+   A = A/B;
+   return(A);
+}
+
 inline v2
 operator/(v2 A, v2 B)
 {
@@ -1176,14 +1206,14 @@ Length(v2 A)
 }
 
 inline v2
-Unit (v2 A)
+Unit(v2 A)
 {
    v2 Result = A/Length (A);
    return(Result);
 }
 
 inline v2
-Lerp (v2 A, r32 t, v2 B)
+Lerp(v2 A, r32 t, v2 B)
 {
    v2 Result = (1.f - t)*A + t*B;
    return(Result);
@@ -1485,12 +1515,12 @@ ColorWithSaturation(v4 C, r32 S)
 
 // NOTE (mjp): Rectangle types and functions
 
+
 struct rectangle2
 {
    v2 Min;
    v2 Max;
 };
-
 typedef rectangle2 rect2;
 
 inline v2
@@ -1915,15 +1945,17 @@ Line(v2 A, v2 B)
 
 
 
-//////////////////////////////////////////////////////////////////////////////
-//// mat2 ////////////////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////////////////////////
+//
+// SECTION: MATRICES
+//
+//
 
-// All matrices are column major
+// NOTE (MJP): All matrices are column major
 
 union mat4
 {
    v4 cols[4];
+   v4 Columns[4];
 };
 
 inline mat4
@@ -1939,17 +1971,19 @@ Mat4 (v4 a1, v4 a2, v4 a3, v4 a4)
    return (A);
 }
 
-// rename to mat3x3?
+// TODO (MJP): Rename to mat3x3?
 union mat3
 {
    v3 cols[3];
+   v3 Columns[3];
    r32 e[3][3];
 };
 
+typedef mat3 m3;
 
 // TODO just make these element wise...? not much point in defining vectors...
 inline mat3
-Mat3 (v3 a1, v3 a2, v3 a3)
+Mat3(v3 a1, v3 a2, v3 a3)
 {
    mat3 A;
 
@@ -1960,9 +1994,22 @@ Mat3 (v3 a1, v3 a2, v3 a3)
    return (A);
 }
 
+inline mat3
+Mat3Identity()
+{
+   mat3 A;
+
+   A.cols[0] = V3(1.f, 0.f, 0.f);
+   A.cols[1] = V3(0.f, 1.f, 0.f);
+   A.cols[2] = V3(0.f, 0.f, 1.f);
+
+   return (A);
+}
+
+
 
 inline mat3
-Mat3 ()
+Mat3()
 {
    mat3 A = {0};
    return(A);
@@ -2109,6 +2156,7 @@ GetSignBit (r32 x)
 
 
 
+#if MJP__USE_SSE
 // NOTE: (Kapsy) THIS IS MIT LICENSE CODE, WILL HAVE TO REMOVE AT SOME POINT.
 #define EXP_POLY_DEGREE 3
 
@@ -2153,6 +2201,7 @@ m128 exp2f4(m128 x)
    return(_mm_mul_ps(expipart, expfpart));
 }
 
+#endif
 
   //////////////////////////////////////////////////////////////////////////////
  //// Fast Random Functions ///////////////////////////////////////////////////
@@ -2435,17 +2484,17 @@ AtomicCompareExchangeU32_U32(u32 volatile *TheValue, u32 OldValue, u32 NewValue)
    return(Result);
 }
 
-function B32
+function b32
 AtomicCompareExchangeU32_B32(u32 volatile *TheValue, u32 OldValue, u32 NewValue)
 {
-   B32 Result = __sync_bool_compare_and_swap(TheValue, OldValue, NewValue);
+   b32 Result = __sync_bool_compare_and_swap(TheValue, OldValue, NewValue);
    return(Result);
 }
 
-function B32
+function b32
 AtomicCompareExchangeU64_B32(u64 volatile *TheValue, u64 OldValue, u64 NewValue)
 {
-   B32 Result = __sync_bool_compare_and_swap(TheValue, OldValue, NewValue);
+   b32 Result = __sync_bool_compare_and_swap(TheValue, OldValue, NewValue);
    return(Result);
 }
 
@@ -2588,6 +2637,7 @@ CatStrings (char *a, char *b, char *out)
     return (res);
 }
 
+#ifdef RJF_LIBS
 //
 // SECTION: CHUNK ALLOCATOR
 //
@@ -2950,6 +3000,7 @@ ResizeAllocationVoid(chunk_allocator *ChunkAllocator, void *RegionStartAddress, 
 #define NewAllocation(Allocator, Type, Count) (Type *)ResizeAllocationVoid(Allocator, (void *)NULL_ALLOCATION, SizeOf(Type)*Count)
 #define ResizeAllocation(Allocator, Allocation, Type, Count) (Type *)ResizeAllocationVoid((Allocator), (void *)(Allocation), SizeOf(Type)*(Count))
 
+#endif
 
 #define MJP_H
 #endif
