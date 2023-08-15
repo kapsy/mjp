@@ -2323,6 +2323,7 @@ RandomBetweenS32 (random_seed *seed, s32 min, s32 max)
 // f:first/free l:last b:base n:node
 
 // Sentinel DLL macros
+// TODO (KAPSY): Don't like the prefix here, would like to use SLL... Maybe "DLLSentinel..."
 
 #define SDLLInsertAfter_NP(b, n, Next, Prev) ((n)->Next = (b)->Next, \
                                               (n)->Prev = (b), \
