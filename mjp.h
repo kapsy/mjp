@@ -20,7 +20,6 @@ Version History
 */
 
 
-#define MJP__USE_SSE 0
 
 //
 // SECTION: STANDARD LIB INCLUDES
@@ -564,18 +563,19 @@ BiToUni (r32 x)
 
 
 #if MJP__USE_SSE
-inline r128
-ClampUniR128 (r128 x)
-{
-   r128 ltm = _mm_cmplt_ps (x, ZERO);
-   r128 gtm = _mm_cmpgt_ps (x, ONE);
-   r128 a1 = _mm_andnot_ps (ltm, x);
-   r128 a = _mm_andnot_ps (gtm, a1);
-   r128 b = _mm_and_ps (ltm, ZERO);
-   r128 c = _mm_and_ps (gtm, ONE);
-   r128 y = a + b + c;
-   return (y);
-}
+
+//// old inline r128
+//// old ClampUniR128 (r128 x)
+//// old {
+//// old    r128 ltm = _mm_cmplt_ps (x, ZERO);
+//// old    r128 gtm = _mm_cmpgt_ps (x, ONE);
+//// old    r128 a1 = _mm_andnot_ps (ltm, x);
+//// old    r128 a = _mm_andnot_ps (gtm, a1);
+//// old    r128 b = _mm_and_ps (ltm, ZERO);
+//// old    r128 c = _mm_and_ps (gtm, ONE);
+//// old    r128 y = a + b + c;
+//// old    return (y);
+//// old }
 
 
 
