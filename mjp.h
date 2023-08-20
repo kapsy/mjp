@@ -2919,25 +2919,37 @@ AllocateChunkRegion(chunk_allocator *ChunkAllocator, u32 ChunkCount)
    return(AllocatedRegion);
 }
 
-#if 0 // old
-void *
-NewAllocationVoid(chunk_allocator *ChunkAllocator, u32 SizeBytes)
+#if 0
+// NOTE (mjp): Return an index to be used for relative pointers
+// TODO (MJP): For relative allocator to work we need to make the chunk_allocator linked lists be relative too
+function u32
+ResizeAllocationIndex(chunk_allocator *ChunkAllocator, u32 RegionStartIndex, u32 SizeBytes)
 {
-   Assert(ChunkAllocator->ChunkMemory);
+   chunk_region *SourceRegion =
+      GetAllocatedRegion(ChunkAllocator, RegionStartIndex);
 
-   u32 ChunkCount = GetChunkCount(SizeBytes);
-   chunk_region *AllocatedRegion =
-      AllocateChunkRegion(ChunkAllocator, ChunkCount);
+   chunk_region *NewRegion =
+      ResizeAllocation(ChunkAllocator, SourceRegion, SizeBytes);
 
-   void *RegionStartAddress = 
-      GetMemoryAddress(ChunkAllocator, AllocatedRegion);
+   return(NewRegion->StartIndex);
+}
 
-   // TODO (MJP): Asserting here for now, but really up to caller to check if allocation suceeded.
-   // However, when we support expandable arenas, will want to assert here.
-   Assert(RegionStartAddress);
-   return(RegionStartAddress);
+function void *
+ResizeAllocationVoid(chunk_allocator *ChunkAllocator, void *RegionStartAddress, u32 SizeBytes)
+{
+   chunk_region *SourceRegion =
+      GetAllocatedRegion(ChunkAllocator, RegionStartAddress);
+
+   chunk_region *NewRegion =
+      ResizeAllocation(ChunkAllocator, SourceRegion, SizeBytes);
+
+   void *NewRegionStartAddress =
+      GetMemoryAddress(ChunkAllocator, NewRegion);
+
+   return(NewRegionStartAddress);
 }
 #endif
+
 
 function void *
 ResizeAllocationVoid(chunk_allocator *ChunkAllocator, void *RegionStartAddress, u32 SizeBytes)
