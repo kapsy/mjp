@@ -2553,6 +2553,13 @@ AtomicCompareAndSwapBool(u64 volatile *TheValue, u64 OldValue, u64 NewValue)
    return(Result);
 }
 
+function b32
+AtomicCompareAndSwapBool(u32 volatile *TheValue, u32 OldValue, u32 NewValue)
+{
+   b32 Result = __sync_bool_compare_and_swap(TheValue, OldValue, NewValue);
+   return(Result);
+}
+
 //// function u64
 //// AtomicLoad(u64 volatile *TheValue)
 //// {
@@ -2566,6 +2573,14 @@ AtomicLoad(u64 volatile *TheValue)
 {
    // NOTE: (Kapsy) Returns the original value, prior to adding.
    u64 Result = __atomic_load_n(TheValue, __ATOMIC_SEQ_CST);
+   return(Result);
+}
+
+function u32
+AtomicLoad(u32 volatile *TheValue)
+{
+   // NOTE: (Kapsy) Returns the original value, prior to adding.
+   u32 Result = __atomic_load_n(TheValue, __ATOMIC_SEQ_CST);
    return(Result);
 }
 
