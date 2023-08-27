@@ -158,6 +158,7 @@ PointerToU32(void *Pointer)
 #define AddAndWrap(Value, Addend, Count) (Value) = (((Value) + (Addend)) & ((Count) - 1))
 #define IncAndWrap(Value, Count) (Value) = (((Value) + 1) & ((Count) - 1))
 #define DecAndWrap(Value, Count) (Value) = (((Value) - 1) & ((Count) - 1))
+#define DecAndWrap2(Value, Count) (((Value) - 1) & ((Count) - 1))
 
 //
 // SECTION STD LIB, INTRINSIC WRAPPERS
