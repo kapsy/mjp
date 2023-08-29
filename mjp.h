@@ -1947,7 +1947,7 @@ Line(v2 A, v2 B)
 
 
 //
-// SECTION: MATRICES
+// SECTION: 4x4 MATRIX
 //
 //
 
@@ -1971,6 +1971,11 @@ Mat4 (v4 a1, v4 a2, v4 a3, v4 a4)
 
    return (A);
 }
+
+//
+// SECTION: 3x3 MATRIX
+//
+//
 
 // TODO (MJP): Rename to mat3x3?
 union mat3
@@ -2008,6 +2013,44 @@ Mat3Identity()
 }
 
 
+inline mat3
+Mat3Scale(v2 s)
+{
+   mat3 S;
+
+   S.cols[0] = V3(s.x, 0.f, 0.f);
+   S.cols[1] = V3(0.f, s.y, 0.f);
+   S.cols[2] = V3(0.f, 0.f, 1.f);
+
+   return(S);
+}
+
+inline mat3
+Mat3Translate(v2 t)
+{
+   mat3 T;
+
+   T.cols[0] = V3(1.f, 0.f, 0.f);
+   T.cols[1] = V3(0.f, 1.f, 0.f);
+   T.cols[2] = V3(t.x, t.y, 1.f);
+
+   return(T);
+}
+
+inline mat3
+Mat3Rotate(r32 r)
+{
+   mat3 R;
+
+   r32 Cosr = Cos(r);
+   r32 Sinr = Sin(r);
+
+   R.cols[0] = V3(Cosr, -Sinr, 0.f);
+   R.cols[1] = V3(Sinr,  Cosr, 0.f);
+   R.cols[2] = V3(0.f,    0.f, 1.f);
+
+   return(R);
+}
 
 inline mat3
 Mat3()
@@ -2034,7 +2077,7 @@ operator*(mat3 A, mat3 B)
 
          Ai = Ci;
          Bj = Cj;
-         C.e[Cj][Ci] = 
+         C.e[Cj][Ci] =
             A.e[0][Ai]*B.e[Bj][0] +
             A.e[1][Ai]*B.e[Bj][1] +
             A.e[2][Ai]*B.e[Bj][2];
@@ -2043,6 +2086,34 @@ operator*(mat3 A, mat3 B)
    return (C);
 }
 
+
+inline v3
+operator*(mat3 A, v3 v)
+{
+    v3 Result;
+
+    Result.x  = v.E[0] * A.cols[0].x;
+    Result.y  = v.E[0] * A.cols[0].y;
+    Result.z  = v.E[0] * A.cols[0].z;
+
+    Result.x += v.E[1] * A.cols[1].x;
+    Result.y += v.E[1] * A.cols[1].y;
+    Result.z += v.E[1] * A.cols[1].z;
+
+    Result.x += v.E[2] * A.cols[2].x;
+    Result.y += v.E[2] * A.cols[2].y;
+    Result.z += v.E[2] * A.cols[2].z;
+
+    return(Result);
+}
+
+
+
+
+//
+// SECTION: 2x2 MATRIX
+//
+//
 
 
 
