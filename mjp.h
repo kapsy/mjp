@@ -2351,6 +2351,17 @@ RandomBetweenS32 (random_seed *seed, s32 min, s32 max)
                                          SDLLRemove (n)))
 #define SDLLAlloc(n, f, alloc) SDLLAlloc_N(n, f, alloc, Next)
 
+#define SDLLFirst(ListSentinel) (ListSentinel)->Next
+#define SDLLLast(ListSentinel) (ListSentinel)->Prev
+
+#define SDLLFreeEntireList(ListSentinel, FreeListSentinel) \
+         (FreeListSentinel)->Prev->Next = SDLLFirst(ListSentinel); \
+         SDLLFirst(ListSentinel)->Prev = (FreeListSentinel)->Prev; \
+         (FreeListSentinel)->Prev = SDLLLast(ListSentinel); \
+         SDLLLast(ListSentinel)->Next = (FreeListSentinel); \
+         SDLLInit(ListSentinel)
+
+
 // Don't like this, removal from list should be separate to free
 // #define SDLLFree(n, f) (SDLLRemove ((n)), \
 //                         SDLLInsertAfter ((f), (n))) \
