@@ -661,6 +661,23 @@ Clamp(u32 Min, u32 Value, u32 Max)
    return(Result);
 }
 
+inline u64
+Clamp(u64 Min, u64 Value, u64 Max)
+{
+   u64 Result = Value;
+
+   if (Result < Min)
+   {
+      Result = Min;
+   }
+   else if (Result > Max)
+   {
+      Result = Max;
+   }
+
+   return(Result);
+}
+
 inline r32
 Clamp01(r32 Value)
 {
