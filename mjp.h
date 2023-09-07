@@ -113,6 +113,7 @@ typedef __m256i m256i;
 #define FatalAssert(Expression) if(!(Expression)) { abort(); }
 
 // Zero functions 
+// TODO (MJP): Should we use a memory clear here? Faster for larger sizes?
 inline void
 ZeroSize (memory_index Size, void *Ptr)
 {
@@ -147,7 +148,10 @@ PointerToU32(void *Pointer)
    (Value) = ((Value) & ~(Flag)) | (Flag)*Switch
 
 #define GetBit(Value, Position) \
-   ((Value) & (1 << Position))
+   ((Value) & (1 << (Position)))
+
+#define SetBit(Value, Position, State) \
+   (Value) = (((Value) & ~(1 << (Position))) | (1 << (Position))*State)
 
 
 // TODO: (Kapsy) Implement the ASM version at github.com/itfrombit/osx_handmade
