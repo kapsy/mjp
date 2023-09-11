@@ -486,6 +486,14 @@ Lerp(r32 A, r32 t, r32 B)
    return(Result);
 }
 
+#define Unlerp(t, A, B) (((t) - (A))/(r32)((B) - (A)))
+
+inline r32
+LinearRemap(r32 In, r32 InMin, r32 InMax, r32 OutMin, r32 OutMax)
+{
+   return(Lerp(OutMin, Unlerp(In, InMin, InMax), OutMax));
+}
+
 
 #if MJP__USE_SSE
 // move these somewhere useful
