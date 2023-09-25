@@ -416,18 +416,22 @@ ReverseEndianDWord(u32 DWord)
 #define TAU 6.283185307179586
 
 // Small time scalar conversions
+#define SPerM   (6e01)
 #define SPerMS  (1e-03)
 #define SPerUS  (1e-06)
 #define SPerNS  (1e-09)
 
+#define MSPerM  (6e04)
 #define MSPerS  (1e03)
 #define MSPerUS (1e-03)
 #define MSPerNS (1e-06)
 
+#define USPerM  (6e07)
 #define USPerS  (1e06)
 #define USPerMS (1e03)
 #define USPerNS (1e-03)
 
+#define NSPerM  (6e10)
 #define NSPerS  (1e09)
 #define NSPerMS (1e06)
 #define NSPerUS (1e03)
