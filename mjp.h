@@ -33,6 +33,7 @@ Version History
 #include <limits.h>
 #include <string.h>
 //#include <cfloat.h>
+#include <float.h>
 
 
 //
