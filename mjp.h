@@ -2927,7 +2927,7 @@ MergeNeighboringFreeRegions(chunk_allocator *ChunkAllocator)
 function void
 SetupAllocator(chunk_allocator *ChunkAllocator)
 {
-   ChunkAllocator->Arena = M_ArenaAlloc((1 << 20)*20);
+   ChunkAllocator->Arena = M_ArenaAlloc((1 << 20)*80);
 
    u32 ChunkMemorySize =
       CHUNK_ALLOCATOR_CHUNK_SIZE*CHUNK_ALLOCATOR_CHUNK_COUNT;
