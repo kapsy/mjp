@@ -1259,6 +1259,15 @@ Clamp01(v2 A)
 {
    v2 Result = V2(Clamp01(A.x), Clamp01(A.y));
    return(Result);
+
+}
+
+inline v2
+Round(v2 A)
+{
+   // TODO (MJP): Vector intrinsic?
+   v2 Result = V2(roundf(A.x), roundf(A.y));
+   return(Result);
 }
 
 // NOTE (mjp): v3 operators
@@ -1394,6 +1403,7 @@ Lerp(v3 A, r32 t, v3 B)
 
    return(Result);
 }
+
 
 // NOTE (mjp): v4 operators
 // TODO (mjp): Should probably generate these or something
