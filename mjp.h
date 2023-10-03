@@ -2469,14 +2469,14 @@ RandomBetweenS32 (random_seed *seed, s32 min, s32 max)
 #define SDLLFirst(ListSentinel) (ListSentinel)->Next
 #define SDLLLast(ListSentinel) (ListSentinel)->Prev
 
-#define SDLLFreeEntireList(ListSentinel, FreeListSentinel) \
+#define SDLLFreeList(ListSentinel, FreeListSentinel) \
          (FreeListSentinel)->Prev->Next = SDLLFirst(ListSentinel); \
          SDLLFirst(ListSentinel)->Prev = (FreeListSentinel)->Prev; \
          (FreeListSentinel)->Prev = SDLLLast(ListSentinel); \
          SDLLLast(ListSentinel)->Next = (FreeListSentinel); \
          SDLLInit(ListSentinel)
 
-#define SDLLMoveEntireList(Sentinel, DestSentinel) \
+#define SDLLMoveList(Sentinel, DestSentinel) \
          SDLLFirst(DestSentinel)->Prev = SDLLLast(Sentinel); \
          SDLLLast(Sentinel)->Next = SDLLFirst(DestSentinel); \
          SDLLFirst(DestSentinel) = SDLLFirst(Sentinel); \
