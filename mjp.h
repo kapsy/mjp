@@ -317,6 +317,14 @@ FloorR32(r32 A)
     return(Result);
 }
 
+
+inline r32
+Ceil(r32 A)
+{
+   r32 Result = __builtin_ceilf(A);
+   return(Result);
+}
+
 inline s32
 CeilR32ToS32(r32 A)
 {
