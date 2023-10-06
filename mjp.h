@@ -2743,6 +2743,7 @@ AtomicSub(u64 volatile *TheValue, u64 Addend)
     return(Result);
 }
 
+// NOTE: (Kapsy) Returns the original value, prior to adding.
 function u32
 AtomicIncrement(u32 volatile *TheValue)
 {
@@ -2750,6 +2751,7 @@ AtomicIncrement(u32 volatile *TheValue)
     return(Result);
 }
 
+// NOTE: (Kapsy) Returns the original value, prior to adding.
 function u32
 AtomicDecrement(u32 volatile *TheValue)
 {
