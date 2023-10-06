@@ -2743,6 +2743,20 @@ AtomicSub(u64 volatile *TheValue, u64 Addend)
     return(Result);
 }
 
+function u32
+AtomicIncrement(u32 volatile *TheValue)
+{
+    u32 Result = __sync_fetch_and_add(TheValue, 1);
+    return(Result);
+}
+
+function u32
+AtomicDecrement(u32 volatile *TheValue)
+{
+    u32 Result = __sync_fetch_and_add(TheValue, -1);
+    return(Result);
+}
+
 
 // 
 // SECTION: MEMORY ARENAS
