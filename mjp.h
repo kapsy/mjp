@@ -2562,21 +2562,21 @@ RandomBetweenS32 (random_seed *seed, s32 min, s32 max)
 #define SLLStackPush_N(f, n, Next) ((f) == 0 ? \
                                     ((n)->Next = 0, (f) = (n)) : \
                                     ((n)->Next = (f), (f) = (n)))
-#define SLLStackPush(f, n) SLLStackPush_N (f, n, Next)
+#define SLLStackPush(f, n) SLLStackPush_N(f, n, Next)
 
 #define SLLStackPop_N(f, Next) ((f) == 0 ? 0 : \
                                 (f) = (f)->Next)
-#define SLLStackPop(f) SLLStackPop_N (f, Next)
+#define SLLStackPop(f) SLLStackPop_N(f, Next)
 
 #define SLLStackAlloc_N(n, f, alloc, Next) ((f) ? \
                                             ((n) = (f), SLLStackPop(f), (n)->Next = 0) : \
                                             ((n) = (alloc), (n)->Next = 0))
-#define SLLStackAlloc(n, f, alloc) SLLStackAlloc_N (n, f, alloc, Next)
+#define SLLStackAlloc(n, f, alloc) SLLStackAlloc_N(n, f, alloc, Next)
 
 #define SLLStackFree_N(n, f, Next) ((f) ? \
-                                    (SLLStackPush (f, n)) : \
+                                    (SLLStackPush(f, n)) : \
                                     ((f) = (n), (n)->Next = 0))
-#define SLLStackFree(n, f) SLLStackFree_N (n, f, Next)
+#define SLLStackFree(n, f) SLLStackFree_N(n, f, Next)
 
 // TODO: Should go in kapsy.h
 #define DLLAllocL(list, elem, alloc) DLLAlloc ((list).first, (list).last, (elem), (alloc))
