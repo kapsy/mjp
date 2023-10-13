@@ -113,6 +113,14 @@ typedef __m256i m256i;
 
 #define FatalAssert(Expression) if(!(Expression)) { abort(); }
 
+#define HI_NIBBLE 0xF0
+#define LO_NIBBLE 0x0F
+
+#define NULL_INDEX_U8  0xFF
+#define NULL_INDEX_U16 0xFFFF
+#define NULL_INDEX_U32 0xFFFFFFFF
+#define NULL_INDEX_U64 0xFFFFFFFFFFFFFFFF
+
 // Zero functions 
 // TODO (MJP): Should we use a memory clear here? Faster for larger sizes?
 inline void
