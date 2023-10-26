@@ -173,6 +173,8 @@ PointerToU32(void *Pointer)
 #define DecAndWrap(Value, Count) (Value) = (((Value) - 1) & ((Count) - 1))
 #define DecAndWrap2(Value, Count) (((Value) - 1) & ((Count) - 1))
 
+
+
 //
 // SECTION STD LIB, INTRINSIC WRAPPERS
 //
@@ -2768,6 +2770,76 @@ AtomicDecrement(u32 volatile *TheValue)
 {
     u32 Result = __sync_fetch_and_add(TheValue, -1);
     return(Result);
+}
+
+
+// 
+// SECTION: ATOMIC RING BUFFER STATE
+//
+//
+
+union ring_buffer_state
+{
+   struct
+   {
+      u32 ReadIndex;
+      u32 WriteIndex;
+   };
+
+   u64 U64;
+};
+
+inline ring_buffer_state 
+GetState(ring_buffer_state *State)
+{
+   ring_buffer_state LoadedState;
+   LoadedState.U64 = AtomicLoad(&State->U64);
+   return(LoadedState);
+}
+
+inline void
+SetReadIndex(u32 ReadIndex, ring_buffer_state *State)
+{
+   // CAS swap
+   ring_buffer_state OldState;
+   ring_buffer_state NewState;
+   b32 Swapped = false;
+   do
+   {
+      OldState.U64 = AtomicLoad(&State->U64);
+      NewState = OldState;
+      NewState.ReadIndex = ReadIndex;
+      Swapped = AtomicCompareAndSwapBool(&State->U64, OldState.U64, NewState.U64);
+   }
+   while (!Swapped);
+}
+
+inline void
+SetWriteIndex(u32 WriteIndex, ring_buffer_state *State)
+{
+   // CAS swap
+   ring_buffer_state OldState;
+   ring_buffer_state NewState;
+   b32 Swapped = false;
+   do
+   {
+      OldState.U64 = AtomicLoad(&State->U64);
+      NewState = OldState;
+      NewState.WriteIndex = WriteIndex;
+      Swapped = AtomicCompareAndSwapBool(&State->U64, OldState.U64, NewState.U64);
+   }
+   while (!Swapped);
+}
+
+
+inline b32
+HighWater(ring_buffer_state State, u32 Count)
+{
+   // NOTE (MJP): We decrement the read index, to differentiate between high
+   // water and an empty buffer.
+   DecAndWrap(State.ReadIndex, Count);
+   b32 AtHighWater = (State.WriteIndex == State.ReadIndex);
+   return(AtHighWater);
 }
 
 
