@@ -245,6 +245,9 @@ AbsoluteValue(r32 A)
     return(Result);
 }
 
+#define Min(A, B) (((A) < (B)) ? (A) : (B))
+#define Max(A, B) (((A) > (B)) ? (A) : (B))
+
 inline u32
 RotateLeft(u32 Value, s32 Amount)
 {
