@@ -2604,6 +2604,15 @@ RandomBetweenS32 (random_seed *seed, s32 min, s32 max)
 //
 //
 
+// MARK: - MIDI structs and constants
+#define MIDI_2_0_CHANNEL_VOICE_MESSAGE_TYPE 0x4
+#define MIDI_2_0_INVERSE_MAX_VELOCITY (1.f/((r32)(1 << 16)))
+#define MIDI_1_x_INVERSE_MAX_VELOCITY (1.f/((r32)(1 << 8)))
+#define MIDI_STATUS_NOTE_ON 0x9
+#define MIDI_STATUS_NOTE_OFF 0x8
+#define MIDI_STATUS_CONTROL_CHANGE 0xB
+#define VAR_TEMP_MIDI_IN_HASH 0x1
+#define VAR_MIDI_INPUT_REF_HASH (1 << 10)
 
 // 1.0/127.0 (not 128, because we want 127 = 1.0)
 #define MIDI_VAL 127.0
