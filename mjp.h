@@ -3282,6 +3282,8 @@ ResizeAllocationVoid(chunk_allocator *ChunkAllocator, void *RegionStartAddress, 
 #define NewAllocation(Allocator, Type, Count) (Type *)ResizeAllocationVoid(Allocator, (void *)NULL_ALLOCATION, SizeOf(Type)*Count)
 #define ResizeAllocation(Allocator, Allocation, Type, Count) (Type *)ResizeAllocationVoid((Allocator), (void *)(Allocation), SizeOf(Type)*(Count))
 
+#define FreeAllocation(Allocator, Allocation)
+
 #endif
 
 #define MJP_H
