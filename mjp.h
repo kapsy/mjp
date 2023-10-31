@@ -86,6 +86,9 @@ typedef __m256i m256i;
 #define U32_MAX 0xFFFFFFFF
 #define S32_MAX
 
+#define U64_MAX 0xFFFFFFFFFFFFFFFF
+#define S64_MAX
+
 // TODO (MJP): Is there a way to get these from the system?
 #define L2_CACHE_SIZE 64
 #define SYSTEM_PAGE_SIZE 4096
