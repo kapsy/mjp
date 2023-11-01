@@ -2801,6 +2801,7 @@ union ring_buffer_state
    u64 U64;
 };
 
+// TODO (MJP): Rename to make it clear that it's atomic
 inline ring_buffer_state 
 GetState(ring_buffer_state *State)
 {
