@@ -2810,6 +2810,7 @@ GetState(ring_buffer_state *State)
    return(LoadedState);
 }
 
+// TODO (MJP): Rename to make it clear that it's atomic
 inline void
 SetReadIndex(u32 ReadIndex, ring_buffer_state *State)
 {
@@ -2827,6 +2828,7 @@ SetReadIndex(u32 ReadIndex, ring_buffer_state *State)
    while (!Swapped);
 }
 
+// TODO (MJP): Rename to make it clear that it's atomic
 inline void
 SetWriteIndex(u32 WriteIndex, ring_buffer_state *State)
 {
@@ -2853,6 +2855,13 @@ HighWater(ring_buffer_state State, u32 Count)
    DecAndWrap(State.ReadIndex, Count);
    b32 AtHighWater = (State.WriteIndex == State.ReadIndex);
    return(AtHighWater);
+}
+
+inline b32
+Empty(ring_buffer_state State)
+{
+   b32 Empty = (State.ReadIndex == State.WriteIndex);
+   return(Empty);
 }
 
 
