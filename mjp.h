@@ -172,6 +172,7 @@ PointerToU32(void *Pointer)
 
 // NOTE (MJP): These only work when Count is a power of 2
 #define AddAndWrap(Value, Addend, Count) (Value) = (((Value) + (Addend)) & ((Count) - 1))
+#define AddAndWrap2(Value, Addend, Count) (((Value) + (Addend)) & ((Count) - 1))
 #define IncAndWrap(Value, Count) (Value) = (((Value) + 1) & ((Count) - 1))
 #define DecAndWrap(Value, Count) (Value) = (((Value) - 1) & ((Count) - 1))
 #define DecAndWrap2(Value, Count) (((Value) - 1) & ((Count) - 1))
