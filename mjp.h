@@ -320,7 +320,7 @@ FloorR32ToS32(r32 A)
 }
 
 inline u32
-FloorR32Tou32(r32 A)
+FloorR32ToU32(r32 A)
 {
     u32 Result = (u32)__builtin_floorf(A);
     return(Result);
